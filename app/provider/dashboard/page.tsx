@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { MapPin, Clock, Euro, Star, Zap, ChevronRight, Bell, CheckCircle, AlertCircle } from 'lucide-react'
+import { MapPin, Clock, Euro, Star, Zap, ChevronRight, Bell, CheckCircle, AlertCircle, CreditCard } from 'lucide-react'
 
 const URGENCY_CONFIG = {
   asap:   { label: 'Notfall',      color: 'bg-red-100 text-red-700',    dot: 'bg-red-500' },
@@ -106,6 +106,21 @@ export default async function ProviderDashboard({
           )}
         </Link>
       </div>
+
+
+      {/* Stripe Connect Banner — nur wenn nicht verbunden */}
+      {!(providerProfile as { stripe_account_id?: string } | null)?.stripe_account_id && (
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-4 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-white font-bold text-sm">💳 Stripe-Konto verbinden</p>
+            <p className="text-purple-200 text-xs mt-0.5">Verbinde dein Stripe-Konto um Zahlungen zu empfangen</p>
+          </div>
+          <a href="/api/stripe/connect"
+            className="bg-white text-purple-700 font-bold text-sm px-4 py-2 rounded-xl hover:bg-purple-50 transition-colors whitespace-nowrap">
+            Jetzt verbinden
+          </a>
+        </div>
+      )}
 
       {/* Schnell-Status */}
       {(acceptedOffers.length > 0 || pendingOffers.length > 0) && (

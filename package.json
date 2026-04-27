@@ -16,7 +16,10 @@
     "next": "16.2.4",
     "posthog-js": "^1.228.0",
     "react": "19.2.4",
-    "react-dom": "19.2.4"
+    "react-dom": "19.2.4",
+    "stripe": "^17.7.0",
+    "@stripe/stripe-js": "^5.5.0",
+    "@stripe/react-stripe-js": "^3.1.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

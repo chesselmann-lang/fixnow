@@ -1,95 +1,73 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import Stripe from 'stripe'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 
-export async function POST(request: NextRequest) {
-  const body = await request.text()
-  const signature = request.headers.get('stripe-signature') ?? ''
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2025-04-30.basil' })
 
-  const STRIPE_SECRET = process.env.STRIPE_SECRET_KEY
-  const WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET
+export async function POST(req: NextRequest) {
+  const body = await req.text()
+  const sig = req.headers.get('stripe-signature')!
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!
 
-  if (!STRIPE_SECRET || !WEBHOOK_SECRET) {
-    return NextResponse.json({ error: 'Not configured' }, { status: 503 })
-  }
-
-  // Stripe-Signatur verifizieren
-  let event: { type: string; data: { object: Record<string, unknown> } }
+  let event: Stripe.Event
   try {
-    const { createHmac } = await import('crypto')
-    const parts = signature.split(',')
-    const timestamp = parts.find(p => p.startsWith('t='))?.slice(2)
-    const v1 = parts.find(p => p.startsWith('v1='))?.slice(3)
-    const expectedSig = createHmac('sha256', WEBHOOK_SECRET)
-      .update(`${timestamp}.${body}`)
-      .digest('hex')
-    if (expectedSig !== v1) throw new Error('Invalid signature')
-    event = JSON.parse(body)
-  } catch {
-    return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
+    event = stripe.webhooks.constructEvent(body, sig, webhookSecret)
+  } catch (err) {
+    return NextResponse.json({ error: 'Webhook signature invalid' }, { status: 400 })
   }
 
-  const supabase = await createClient()
+  // Service-role Supabase client (bypasses RLS)
+  const cookieStore = await cookies()
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll: () => cookieStore.getAll(),
+        setAll: (cs) => cs.forEach(({ name, value, options }) => cookieStore.set(name, value, options)),
+      },
+    }
+  )
 
   switch (event.type) {
     case 'payment_intent.succeeded': {
-      const pi = event.data.object as Record<string, unknown>
-      const piId = pi.id as string
+      const pi = event.data.object as Stripe.PaymentIntent
+      const offerId = pi.metadata.offer_id
+      const requestId = pi.metadata.request_id
 
-      // Payment als succeeded markieren
-      await supabase
-        .from('payments')
-        .update({ status: 'succeeded', paid_at: new Date().toISOString() })
-        .eq('stripe_payment_intent_id', piId)
-
-      // Buchung anlegen
-      const { data: payment } = await supabase
-        .from('payments')
-        .select('*')
-        .eq('stripe_payment_intent_id', piId)
-        .single()
-
-      if (payment) {
-        // Offer suchen
-        const { data: offer } = await supabase
-          .from('offers')
-          .select('id, request_id')
-          .eq('provider_id', payment.provider_id)
-          .eq('status', 'accepted')
-          .single()
-
-        if (offer) {
-          const { data: booking } = await supabase
-            .from('bookings')
-            .insert({ offer_id: offer.id, status: 'scheduled' })
-            .select('id')
-            .single()
-
-          if (booking) {
-            await supabase.from('payments').update({ booking_id: booking.id }).eq('id', payment.id)
-          }
-
-          // Benachrichtigung an Provider
-          await supabase.from('notifications').insert({
-            user_id: payment.provider_id,
-            type: 'payment_received',
-            title: 'Zahlung eingegangen! 💳',
-            body: 'Der Kunde hat bezahlt. Der Auftrag kann beginnen.',
-            link: `/provider/request/${offer.request_id}`,
-          })
-        }
-      }
+      // Mark offer as paid, request as accepted
+      await Promise.all([
+        supabase.from('offers').update({ status: 'paid', paid_at: new Date().toISOString() }).eq('id', offerId),
+        supabase.from('service_requests').update({ status: 'accepted', accepted_offer_id: offerId }).eq('id', requestId),
+      ])
       break
     }
 
     case 'payment_intent.payment_failed': {
-      const pi = event.data.object as Record<string, unknown>
-      await supabase
-        .from('payments')
-        .update({ status: 'failed' })
-        .eq('stripe_payment_intent_id', pi.id as string)
+      const pi = event.data.object as Stripe.PaymentIntent
+      console.error('Payment failed for offer', pi.metadata.offer_id, pi.last_payment_error?.message)
       break
     }
+
+    case 'account.updated': {
+      // Provider completed onboarding
+      const account = event.data.object as Stripe.Account
+      if (account.charges_enabled) {
+        await supabase
+          .from('provider_profiles')
+          .update({ stripe_verified: true })
+          .eq('stripe_account_id', account.id)
+      }
+      break
+    }
+
+    default:
+      // Unhandled event type — ignore
   }
 
   return NextResponse.json({ received: true })
 }
+
+// Must disable body parsing for Stripe webhook verification
+export const config = { api: { bodyParser: false } }
