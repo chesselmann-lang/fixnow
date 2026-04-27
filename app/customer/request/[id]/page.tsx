@@ -158,7 +158,7 @@ export default async function RequestDetailPage({ params }: { params: Promise<{ 
                   <div className="text-right shrink-0">
                     <p className="text-xl font-bold text-gray-900">{formatPrice(offer.price)}</p>
                     {offer.status === 'pending' && request.status === 'open' && (
-                      <AcceptOfferButton offerId={offer.id} requestId={request.id} />
+                      <AcceptOfferButton offerId={offer.id} requestId={request.id} amount={offer.price / 100} providerName={offer.provider?.profile?.full_name ?? 'Dienstleister'} />
                     )}
                   </div>
                 </div>

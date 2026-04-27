@@ -1,4 +1,5 @@
 'use client'
+import PhoneVerify from '@/components/PhoneVerify'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -38,6 +39,7 @@ export default function ProviderOnboarding() {
   const [companyName, setCompanyName] = useState('')
   const [bio, setBio] = useState('')
   const [phone, setPhone] = useState('')
+  const [phoneVerified, setPhoneVerified] = useState(false)
   const [website, setWebsite] = useState('')
 
   // Step 2: Kategorien
@@ -158,11 +160,9 @@ export default function ProviderOnboarding() {
                   className="w-full border border-gray-200 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none resize-none transition-colors" />
               </div>
               <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-1">Telefon</label>
-                  <input type="tel" value={phone} onChange={e => setPhone(e.target.value)}
-                    placeholder="+49 201 ..."
-                    className="w-full border border-gray-200 focus:border-orange-400 rounded-xl px-4 py-3 text-sm outline-none transition-colors" />
+                <div className="col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Telefon verifizieren</label>
+                  <PhoneVerify defaultPhone={phone} onVerified={(p) => { setPhone(p); setPhoneVerified(true) }} />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1">Website (optional)</label>

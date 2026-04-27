@@ -1,34 +1,50 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
-import { CheckCircle2 } from 'lucide-react'
+import { CheckCircle2, Euro, X } from 'lucide-react'
+import PayButton from '@/components/PayButton'
 
-export default function AcceptOfferButton({ offerId, requestId }: { offerId: string; requestId: string }) {
-  const [loading, setLoading] = useState(false)
+interface Props {
+  offerId: string
+  requestId: string
+  amount: number // in Euro (not cents)
+  providerName: string
+}
+
+export default function AcceptOfferButton({ offerId, requestId, amount, providerName }: Props) {
+  const [showPayment, setShowPayment] = useState(false)
   const router = useRouter()
 
-  async function accept() {
-    setLoading(true)
-    const supabase = createClient()
-    // Angebot akzeptieren
-    await supabase.from('offers').update({ status: 'accepted' }).eq('id', offerId)
-    // Andere Angebote ablehnen
-    await supabase.from('offers').update({ status: 'rejected' })
-      .eq('request_id', requestId).neq('id', offerId)
-    // Auftrag auf in_progress setzen
-    await supabase.from('service_requests').update({ status: 'in_progress' }).eq('id', requestId)
+  function onSuccess() {
     router.refresh()
+    router.push(`/customer/dashboard?payment=success`)
+  }
+
+  if (showPayment) {
+    return (
+      <div className="mt-3 p-4 bg-gray-50 rounded-2xl border border-gray-200 space-y-3">
+        <div className="flex items-center justify-between mb-1">
+          <p className="font-bold text-gray-900 text-sm">Angebot von {providerName} bestätigen</p>
+          <button onClick={() => setShowPayment(false)} className="text-gray-400 hover:text-gray-600">
+            <X size={16} />
+          </button>
+        </div>
+        <p className="text-xs text-gray-500">
+          Mit der Zahlung wird der Betrag sicher einbehalten (Escrow) und erst nach Auftragsabschluss
+          an {providerName} ausgezahlt.
+        </p>
+        <PayButton offerId={offerId} amount={amount} onSuccess={onSuccess} />
+      </div>
+    )
   }
 
   return (
     <button
-      onClick={accept}
-      disabled={loading}
-      className="mt-2 flex items-center gap-1 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+      onClick={() => setShowPayment(true)}
+      className="mt-2 flex items-center gap-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors"
     >
       <CheckCircle2 size={13} />
-      {loading ? 'Wird akzeptiert…' : 'Annehmen'}
+      Akzeptieren &amp; bezahlen — {amount.toFixed(2)} €
     </button>
   )
 }
