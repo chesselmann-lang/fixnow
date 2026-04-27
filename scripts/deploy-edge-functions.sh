@@ -1,21 +1,40 @@
-#!/bin/bash
-# supafix — Edge Function Deployment
-# Run ONCE after: npx supabase login
+#!/usr/bin/env bash
+# Deploy all Supabase Edge Functions
+# Run once: supabase login (needs management API token from https://supabase.com/dashboard/account/tokens)
+
 set -e
 
 PROJECT_REF="wkmhcvtpgscxzftyzmpd"
-echo "🚀 Deploying auto-bid Edge Function to project $PROJECT_REF..."
 
+echo "Linking project..."
 npx supabase link --project-ref $PROJECT_REF
-npx supabase functions deploy auto-bid --project-ref $PROJECT_REF --no-verify-jwt
+
+echo "Deploying auto-bid..."
+npx supabase functions deploy auto-bid --project-ref $PROJECT_REF
+
+echo "Deploying send-notification..."
+npx supabase functions deploy send-notification --project-ref $PROJECT_REF
 
 echo ""
-echo "✅ auto-bid deployed!"
+echo "=== Required Secrets ==="
+echo "Set via: npx supabase secrets set KEY=value --project-ref $PROJECT_REF"
 echo ""
-echo "Set these secrets in Supabase Dashboard → Edge Functions → auto-bid → Secrets:"
-echo "  HESSELMANN_PROVIDER_ID = <uuid aus provider_profiles Tabelle>"
-echo "  SUPABASE_SERVICE_ROLE_KEY = <aus Supabase Settings → API>"
+echo "  RESEND_API_KEY=re_xxxx              (from resend.com)"
+echo "  APP_URL=https://supafix.de"
+echo "  OPENAI_API_KEY=sk-xxx               (for auto-bid)"
+echo "  STRIPE_SECRET_KEY=sk_live_xxx"
 echo ""
-echo "Dann Webhook anlegen: Database → Webhooks → New webhook"
-echo "  Table: service_requests | Event: INSERT"
-echo "  URL: https://$PROJECT_REF.supabase.co/functions/v1/auto-bid"
+echo "=== DB Webhooks to create in Supabase Dashboard ==="
+echo "Dashboard: https://supabase.com/dashboard/project/$PROJECT_REF/database/hooks"
+echo ""
+echo "  1. offers_new_offer_notify"
+echo "     Table: offers | Event: INSERT"
+echo "     → Edge Function: send-notification"
+echo ""
+echo "  2. offers_accepted_notify"
+echo "     Table: offers | Event: UPDATE"
+echo "     → Edge Function: send-notification"
+echo ""
+echo "  3. service_requests_auto_bid"
+echo "     Table: service_requests | Event: INSERT"
+echo "     → Edge Function: auto-bid"

@@ -23,3 +23,29 @@ In mStudio → supafix.de Projekt → Domains → DNS:
 - NEXT_PUBLIC_POSTHOG_KEY → from PostHog (eu.posthog.com)
 - NEXT_PUBLIC_SENTRY_DSN → from Sentry (sentry.io)
 - TWILIO_ACCOUNT_SID + TWILIO_AUTH_TOKEN + TWILIO_VERIFY_SERVICE_SID → from Twilio
+
+## Schema v5 — Reviews + paid_at + completed_at
+
+File: `supabase/schema_v5_reviews.sql`
+
+Run in Supabase SQL Editor:
+https://supabase.com/dashboard/project/wkmhcvtpgscxzftyzmpd/sql/new
+
+Adds:
+- `reviews` table with RLS (one review per offer, rating 1–5)
+- `offers.paid_at` TIMESTAMPTZ
+- `service_requests.completed_at` + `accepted_offer_id`
+- `provider_profiles.stripe_account_id` + `stripe_verified`
+- Offer status extended to include 'completed', 'paid'
+- Indexes for earnings queries
+
+### Resend Setup (for email notifications)
+
+1. Create free account at resend.com
+2. Add & verify domain `supafix.de`
+3. Create API key → set as Vercel env + Supabase secret:
+   ```
+   RESEND_API_KEY=re_xxxx
+   ```
+4. Deploy Edge Function: `./scripts/deploy-edge-functions.sh`
+5. Create DB webhooks in Supabase Dashboard (see script output)
