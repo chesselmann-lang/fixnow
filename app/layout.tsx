@@ -1,19 +1,27 @@
-import type { Metadata } from "next";
-import "./globals.css";
+import type { Metadata } from 'next'
+import { Geist } from 'next/font/google'
+import './globals.css'
+
+const geist = Geist({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: "FixNow – Dienstleister sofort finden",
-  description: "Foto hochladen, Problem beschreiben, sofort Angebote erhalten. Der schnellste Weg zum richtigen Handwerker.",
-};
+  title: 'supafix – Reparatur in Stunden statt Wochen',
+  description: 'Handwerker & Dienstleister in deiner Region. Anfrage in 30 Sekunden, Angebote in 1 Stunde. Kostenlos für Kunden.',
+  keywords: 'Handwerker, Reparatur, Sanitär, Elektrik, Garten, Dinslaken, Duisburg, Düsseldorf, DACH',
+  openGraph: {
+    title: 'supafix – Reparatur in Stunden statt Wochen',
+    description: 'Anfrage in 30 Sekunden. Angebote in 1 Stunde. Termin morgen.',
+    url: 'https://supafix.de',
+    siteName: 'supafix',
+    locale: 'de_DE',
+    type: 'website',
+  },
+}
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="de" className="h-full">
-      <body className="min-h-full flex flex-col bg-gray-50">{children}</body>
+    <html lang="de">
+      <body className={geist.className}>{children}</body>
     </html>
-  );
+  )
 }

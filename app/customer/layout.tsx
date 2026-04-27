@@ -1,64 +1,56 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { Wrench, Home, PlusCircle, Bell, User, LogOut } from 'lucide-react'
+import { Wrench, Plus, LayoutDashboard, LogOut } from 'lucide-react'
+import NotificationBell from '@/components/NotificationBell'
 
 export default async function CustomerLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-
   if (!user) redirect('/auth/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('full_name, role')
-    .eq('id', user.id)
-    .single()
-
+  const { data: profile } = await supabase.from('profiles').select('role, full_name').eq('id', user.id).single()
   if (profile?.role === 'provider') redirect('/provider/dashboard')
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Top Nav */}
+    <div className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-100 sticky top-0 z-40">
         <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
-          <Link href="/customer/dashboard" className="flex items-center gap-2 text-orange-500 font-bold text-lg">
-            <Wrench size={20} />
-            FixNow
+          <Link href="/customer/dashboard" className="flex items-center gap-2">
+            <div className="w-7 h-7 bg-orange-500 rounded-lg flex items-center justify-center">
+              <Wrench size={15} className="text-white" />
+            </div>
+            <span className="font-bold text-lg text-gray-900">supa<span className="text-orange-500">fix</span></span>
           </Link>
-          <div className="flex items-center gap-1">
-            <span className="text-sm text-gray-500 mr-2">Hallo, {profile?.full_name?.split(' ')[0]}</span>
-            <form action="/auth/logout" method="POST">
-              <button type="submit" className="p-2 text-gray-400 hover:text-gray-600 rounded-lg">
-                <LogOut size={18} />
-              </button>
-            </form>
+          <div className="flex items-center gap-2">
+            <NotificationBell userId={user.id} />
+            <Link href="/customer/new-request"
+              className="flex items-center gap-1.5 bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold px-3.5 py-1.5 rounded-full transition-colors">
+              <Plus size={15} />
+              Neu
+            </Link>
           </div>
         </div>
       </header>
-
-      {/* Content */}
-      <main className="flex-1 max-w-4xl mx-auto w-full px-4 py-6">
-        {children}
-      </main>
-
-      {/* Bottom Nav (mobile) */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 z-40">
-        <div className="grid grid-cols-4 h-16">
-          {[
-            { href: '/customer/dashboard', icon: Home, label: 'Übersicht' },
-            { href: '/customer/new-request', icon: PlusCircle, label: 'Neu' },
-            { href: '/customer/notifications', icon: Bell, label: 'Angebote' },
-            { href: '/customer/profile', icon: User, label: 'Profil' },
-          ].map(item => (
-            <Link key={item.href} href={item.href} className="flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-orange-500 transition-colors">
-              <item.icon size={22} />
-              <span className="text-xs">{item.label}</span>
-            </Link>
-          ))}
+      <nav className="bg-white border-b border-gray-100">
+        <div className="max-w-4xl mx-auto px-4 flex gap-6">
+          <Link href="/customer/dashboard" className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 py-3 border-b-2 border-transparent hover:border-gray-300 transition-all">
+            <LayoutDashboard size={15} />
+            Dashboard
+          </Link>
+          <Link href="/customer/new-request" className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 py-3 border-b-2 border-transparent hover:border-gray-300 transition-all">
+            <Plus size={15} />
+            Neue Anfrage
+          </Link>
+          <Link href="/customer/profile" className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 py-3 border-b-2 border-transparent hover:border-gray-300 transition-all ml-auto">
+            Profil
+          </Link>
+          <Link href="/auth/logout" className="flex items-center gap-1.5 text-sm font-medium text-gray-400 hover:text-gray-600 py-3">
+            <LogOut size={14} />
+          </Link>
         </div>
       </nav>
-      <div className="h-16 md:hidden" />
+      <main className="max-w-4xl mx-auto px-4 py-6">{children}</main>
     </div>
   )
 }
