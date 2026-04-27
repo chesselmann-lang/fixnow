@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { MapPin, Clock, Euro, Star, Zap, ChevronRight, Bell, CheckCircle, AlertCircle, CreditCard } from 'lucide-react'
+import { MapPin, Clock, Euro, Star, Zap, ChevronRight, Bell, CheckCircle, AlertCircle, CreditCard, TrendingUp } from 'lucide-react'
 
 const URGENCY_CONFIG = {
   asap:   { label: 'Notfall',      color: 'bg-red-100 text-red-700',    dot: 'bg-red-500' },
@@ -282,11 +282,16 @@ export default async function ProviderDashboard({
       )}
 
       {/* Bottom Nav */}
-      <div className="grid grid-cols-3 gap-3 pb-6">
+      <div className="grid grid-cols-2 gap-3 pb-6">
         <Link href="/provider/profile" className="flex flex-col items-center gap-1.5 bg-white border border-gray-200 rounded-2xl p-4 hover:border-orange-300 transition-colors text-center">
           <Star size={20} className="text-gray-400" />
           <span className="text-xs font-semibold text-gray-600">Mein Profil</span>
           <span className="text-xs text-gray-400">Rating: {providerProfile?.rating_avg ?? '–'} ★</span>
+        </Link>
+        <Link href="/provider/earnings" className="flex flex-col items-center gap-1.5 bg-white border border-gray-200 rounded-2xl p-4 hover:border-orange-300 transition-colors text-center">
+          <TrendingUp size={20} className="text-gray-400" />
+          <span className="text-xs font-semibold text-gray-600">Einnahmen</span>
+          <span className="text-xs text-gray-400">Umsatz & Auszahlung</span>
         </Link>
         <Link href="/notifications" className="flex flex-col items-center gap-1.5 bg-white border border-gray-200 rounded-2xl p-4 hover:border-orange-300 transition-colors text-center relative">
           <Bell size={20} className="text-gray-400" />
