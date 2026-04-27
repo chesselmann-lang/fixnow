@@ -1,4 +1,5 @@
 'use client'
+import MapPreview from '@/components/MapPreview'
 import { useState, useRef, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -440,9 +441,12 @@ export default function NewRequestPage() {
             <p className="text-xs text-gray-400 mt-1">Nur für den beauftragten Dienstleister sichtbar</p>
           </div>
 
-          <div className="bg-blue-50 rounded-2xl p-4 flex items-start gap-3">
-            <MapPin size={18} className="text-blue-500 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-blue-700">Wir benachrichtigen automatisch die 5 besten Dienstleister in deiner Region.</p>
+          {postalCode.length >= 4 && (
+            <MapPreview plz={postalCode} city={city} className="w-full" />
+          )}
+          <div className="bg-blue-50 rounded-2xl p-3 flex items-start gap-2.5">
+            <MapPin size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+            <p className="text-xs text-blue-700">Wir benachrichtigen automatisch die 5 besten Dienstleister in deiner Region.</p>
           </div>
 
           <div className="flex gap-3">
