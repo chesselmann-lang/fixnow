@@ -14,6 +14,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${BASE}/datenschutz`,   lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE}/impressum`,     lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
     { url: `${BASE}/agb`,           lastModified: now, changeFrequency: 'yearly',  priority: 0.3 },
+    { url: `${BASE}/preise`,         lastModified: now, changeFrequency: 'monthly', priority: 0.7 },
   ]
 
   const categoryRoutes: MetadataRoute.Sitemap = CATEGORY_SLUGS.map(slug => ({

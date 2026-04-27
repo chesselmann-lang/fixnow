@@ -38,7 +38,7 @@ export const metadata: Metadata = {
     type: 'website',
     images: [
       {
-        url: `${SITE_URL}/og-image.png`,
+        url: `${SITE_URL}/api/og`,
         width: 1200,
         height: 630,
         alt: 'supafix – Handwerker & Dienstleister buchen',
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: TITLE,
     description: DESC,
-    images: [`${SITE_URL}/og-image.png`],
+    images: [`${SITE_URL}/api/og`],
   },
   alternates: {
     canonical: SITE_URL,
