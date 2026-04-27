@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { MapPin, Clock, Euro, Star, Zap, ChevronRight, Bell, CheckCircle, AlertCircle, CreditCard, TrendingUp } from 'lucide-react'
+import ReferralCard from '@/components/ReferralCard'
 
 const URGENCY_CONFIG = {
   asap:   { label: 'Notfall',      color: 'bg-red-100 text-red-700',    dot: 'bg-red-500' },
@@ -280,6 +281,9 @@ export default async function ProviderDashboard({
           </div>
         </div>
       )}
+
+      {/* Referral */}
+      <ReferralCard />
 
       {/* Bottom Nav */}
       <div className="grid grid-cols-2 gap-3 pb-6">

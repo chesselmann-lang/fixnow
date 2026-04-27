@@ -49,3 +49,30 @@ Adds:
    ```
 4. Deploy Edge Function: `./scripts/deploy-edge-functions.sh`
 5. Create DB webhooks in Supabase Dashboard (see script output)
+
+## Schema v6 — Referral System
+
+File: `supabase/schema_v6_referral.sql`
+
+Adds:
+- `referral_codes` table (owner_id, code, uses)
+- `referral_uses` table (code_id, referred_user_id, rewarded)
+- `profiles.referred_by_code` column
+- Trigger `on_profile_referral` → auto-records referral use on signup
+- Updated `handle_new_user` trigger → copies `referred_by_code` from auth metadata
+
+### Referral Flow
+
+1. Provider visits /provider/dashboard → ReferralCard component
+2. Clicks "Kopieren" → gets `https://supafix.de/join/{code}`
+3. Friend visits /join/{code} → sees 10% discount offer
+4. Friend clicks CTA → /auth/register?ref={code}
+5. RegisterForm passes `referred_by_code` in signUp metadata
+6. `handle_new_user` trigger copies code to profiles.referred_by_code
+7. `on_profile_referral` trigger increments referral_codes.uses
+
+### TODO: Stripe Coupon Application
+When a referred user makes their first payment, apply 10% discount:
+- In `/api/stripe/payment-intent`: check profiles.referred_by_code
+- If set and referral_uses.rewarded = false → apply Stripe Coupon or reduce amount
+- Mark referral_uses.rewarded = true after payment

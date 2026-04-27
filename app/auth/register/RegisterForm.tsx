@@ -10,6 +10,7 @@ export default function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const initialRole = (searchParams.get('role') as UserRole) ?? 'customer'
+  const refCode = searchParams.get('ref') ?? ''
 
   const [role, setRole] = useState<UserRole>(initialRole)
   const [fullName, setFullName] = useState('')
@@ -26,7 +27,7 @@ export default function RegisterForm() {
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName, role } },
+      options: { data: { full_name: fullName, role, ...(refCode && { referred_by_code: refCode }) } },
     })
     if (error) { setError(error.message); setLoading(false); return }
 
