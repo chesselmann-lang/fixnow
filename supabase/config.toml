@@ -1,0 +1,23 @@
+# supafix – Supabase project config
+# Project ref: wkmhcvtpgscxzftyzmpd
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+site_url = "https://supafix.de"
+additional_redirect_urls = ["https://supafix.de/**", "https://fixnow-two.vercel.app/**"]
+jwt_expiry = 3600
+enable_signup = true
+
+[auth.email]
+enable_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+
+[functions.auto-bid]
+verify_jwt = false
