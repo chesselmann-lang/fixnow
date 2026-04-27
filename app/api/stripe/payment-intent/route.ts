@@ -18,14 +18,16 @@ export async function POST(req: NextRequest) {
     .from('offers')
     .select(`
       id, amount, request_id,
-      provider:provider_profiles!offers_provider_id_fkey(stripe_account_id, business_name)
+      provider:provider_profiles!inner(stripe_account_id, business_name)
     `)
     .eq('id', offerId)
     .single()
 
   if (offerErr || !offer) return NextResponse.json({ error: 'Offer not found' }, { status: 404 })
 
-  const provider = offer.provider as { stripe_account_id: string; business_name: string } | null
+  // Supabase join can return array or object depending on relation cardinality
+  const providerRaw = Array.isArray(offer.provider) ? offer.provider[0] : offer.provider
+  const provider = providerRaw as { stripe_account_id: string; business_name: string } | null
   if (!provider?.stripe_account_id) {
     return NextResponse.json({ error: 'Provider has no Stripe account connected' }, { status: 400 })
   }
