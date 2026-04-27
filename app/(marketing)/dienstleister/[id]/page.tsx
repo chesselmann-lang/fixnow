@@ -58,9 +58,9 @@ export default async function ProviderPublicProfile({ params }: Props) {
 
   const profile = Array.isArray(provider.profile) ? provider.profile[0] : provider.profile
   const name = profile?.full_name ?? 'Dienstleister'
-  const cats = ((provider.categories ?? []) as { category: { name: string; icon: string } }[])
-    .map(c => c.category)
-    .filter(Boolean)
+  const cats = ((provider.categories ?? []) as { category: { name: string; icon: string } | { name: string; icon: string }[] }[])
+    .map(c => Array.isArray(c.category) ? c.category[0] : c.category)
+    .filter((c): c is { name: string; icon: string } => !!c)
 
   const memberSince = new Date(provider.created_at).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })
   const rating = Number(provider.rating_avg ?? 0)
