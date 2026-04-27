@@ -19,7 +19,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) return { title: 'Dienstleister nicht gefunden' }
 
   const name = (Array.isArray(data.profile) ? data.profile[0] : data.profile)?.full_name ?? 'Dienstleister'
-  const cats = ((data.categories ?? []) as { category: { name: string } }[]).map(c => c.category?.name).filter(Boolean).join(', ')
+  const rawCats = (data.categories ?? []) as unknown as { category: { name: string } | { name: string }[] }[]
+  const cats = rawCats.map(c => { const cat = Array.isArray(c.category) ? c.category[0] : c.category; return cat?.name }).filter(Boolean).join(', ')
 
   return {
     title: `${name} — ${cats || 'Dienstleister'} auf supafix`,
@@ -58,7 +59,8 @@ export default async function ProviderPublicProfile({ params }: Props) {
 
   const profile = Array.isArray(provider.profile) ? provider.profile[0] : provider.profile
   const name = profile?.full_name ?? 'Dienstleister'
-  const cats = ((provider.categories ?? []) as { category: { name: string; icon: string } | { name: string; icon: string }[] }[])
+  const rawProvCats = (provider.categories ?? []) as unknown as { category: { name: string; icon: string } | { name: string; icon: string }[] }[]
+  const cats = rawProvCats
     .map(c => Array.isArray(c.category) ? c.category[0] : c.category)
     .filter((c): c is { name: string; icon: string } => !!c)
 
