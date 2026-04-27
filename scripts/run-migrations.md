@@ -76,3 +76,29 @@ When a referred user makes their first payment, apply 10% discount:
 - In `/api/stripe/payment-intent`: check profiles.referred_by_code
 - If set and referral_uses.rewarded = false → apply Stripe Coupon or reduce amount
 - Mark referral_uses.rewarded = true after payment
+
+## PWA Push Notifications Setup
+
+### 1. Vercel Environment Variables
+Add to Vercel Dashboard → Project → Settings → Environment Variables:
+
+```
+NEXT_PUBLIC_VAPID_PUBLIC_KEY=BJlcrw2BleBVab-BsMG_c75kWEX3p3Xc7OJiSgyKReYfpBa3flXNCUvYEdUJ0wFHesSbcJ2l5cAqO9IeVtu7BIU
+VAPID_PRIVATE_KEY=ucjcxMickXXlaqJNiCEnxn2e7RAsgLtQiTAbMOaSMt4
+```
+
+### 2. Supabase Secrets
+```bash
+npx supabase secrets set VAPID_PUBLIC_KEY=BJlcrw2BleBVab-BsMG_c75kWEX3p3Xc7OJiSgyKReYfpBa3flXNCUvYEdUJ0wFHesSbcJ2l5cAqO9IeVtu7BIU --project-ref wkmhcvtpgscxzftyzmpd
+npx supabase secrets set VAPID_PRIVATE_KEY=ucjcxMickXXlaqJNiCEnxn2e7RAsgLtQiTAbMOaSMt4 --project-ref wkmhcvtpgscxzftyzmpd
+npx supabase secrets set VAPID_EMAIL=mailto:hallo@supafix.de --project-ref wkmhcvtpgscxzftyzmpd
+```
+
+### 3. DB Webhook
+Dashboard → Database → Webhooks → Create:
+- Name: `service_requests_notify_providers`
+- Table: `service_requests` | Event: INSERT
+- → Edge Function: `notify-providers`
+
+### 4. Schema
+Run `supabase/schema_v6_referral.sql` (includes push_subscriptions table)

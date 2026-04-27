@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { MapPin, Clock, Euro, Star, Zap, ChevronRight, Bell, CheckCircle, AlertCircle, CreditCard, TrendingUp } from 'lucide-react'
 import ReferralCard from '@/components/ReferralCard'
+import PushSubscribeButton from '@/components/PushSubscribeButton'
 
 const URGENCY_CONFIG = {
   asap:   { label: 'Notfall',      color: 'bg-red-100 text-red-700',    dot: 'bg-red-500' },
@@ -281,6 +282,9 @@ export default async function ProviderDashboard({
           </div>
         </div>
       )}
+
+      {/* Push Notifications */}
+      <div className="flex justify-center"><PushSubscribeButton /></div>
 
       {/* Referral */}
       <ReferralCard />
